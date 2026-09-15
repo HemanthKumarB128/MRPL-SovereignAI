@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+
+vector_db/
+*.sqlite3
+
+MRPL-SovereignAI-Day1.tar.gz
+
+.streamlit/
+
+.env
