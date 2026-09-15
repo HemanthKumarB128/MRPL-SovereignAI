@@ -5,6 +5,20 @@ from sentence_transformers import SentenceTransformer
 
 st.set_page_config(page_title="MRPL Sovereign AI Workbench")
 
+uploaded_file = st.file_uploader(
+    "Upload a PDF",
+    type=["pdf"]
+)
+
+if uploaded_file:
+    save_path = f"../data/pdfs/{uploaded_file.name}"
+
+    with open(save_path, "wb") as f:
+        f.write(uploaded_file.getbuffer())
+
+    st.success(f"Uploaded: {uploaded_file.name}")
+
+
 st.title("🤖 MRPL Sovereign AI Workbench")
 
 model = SentenceTransformer("all-MiniLM-L6-v2")
