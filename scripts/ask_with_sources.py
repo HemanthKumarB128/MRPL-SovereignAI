@@ -13,7 +13,7 @@ query_embedding = model.encode(question).tolist()
 
 results = collection.query(
     query_embeddings=[query_embedding],
-    n_results=3
+    n_results=5
 )
 
 context = "\n\n".join(results["documents"][0])
