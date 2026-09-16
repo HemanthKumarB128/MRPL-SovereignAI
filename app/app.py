@@ -86,6 +86,57 @@ if uploaded_file:
 
     st.success(f"Indexed {len(chunks)} chunks into ChromaDB")
 
+# ---------------- Image Upload ----------------
+
+uploaded_image = st.file_uploader(
+    "Upload an Image",
+    type=["png", "jpg", "jpeg"]
+)
+
+if uploaded_image:
+
+    st.write("DEBUG: Image detected")
+    image_question = st.text_input(
+    "Ask a question about the image"
+    )
+
+    import os
+
+    os.makedirs("../data/images", exist_ok=True)
+
+    image_path = f"../data/images/{uploaded_image.name}"
+
+    with open(image_path, "wb") as f:
+        f.write(uploaded_image.getbuffer())
+
+    st.image(
+        uploaded_image,
+        caption=uploaded_image.name,
+        use_container_width=True
+    )
+
+    st.success(f"Uploaded image: {uploaded_image.name}")
+
+    st.write("Saved at:", image_path)
+    if st.button("🔍 Analyze Image"):
+
+        with st.spinner("Analyzing image with LLaVA..."):
+            st.write("Using image:", image_path)
+
+            response = subprocess.run(
+            ["ollama", "run", "llava"],
+            input=f"{image_path}\n{image_question}\n",
+            capture_output=True,
+            text=True
+        )
+
+        st.subheader("Image Analysis")
+        st.write("STDOUT:")
+        st.code(response.stdout)
+
+        st.write("STDERR:")
+        st.code(response.stderr)
+
 # -------------------------------
 # Main App
 # -------------------------------
