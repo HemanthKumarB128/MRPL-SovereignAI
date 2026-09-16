@@ -9,14 +9,22 @@ import pytesseract
 
 st.set_page_config(page_title="MRPL Sovereign AI Workbench")
 
-# Load embedding model
+# -------------------------------
+# Load Embedding Model
+# -------------------------------
+
 model = SentenceTransformer("all-MiniLM-L6-v2")
 
+# -------------------------------
 # Connect ChromaDB
+# -------------------------------
+
 client = chromadb.PersistentClient(path="../vector_db")
 collection = client.get_or_create_collection("mrpl_documents")
 
-# ---------------- PDF Upload ----------------
+# -------------------------------
+# PDF Upload Section
+# -------------------------------
 
 uploaded_file = st.file_uploader(
     "Upload a PDF",
@@ -78,17 +86,17 @@ if uploaded_file:
 
     st.success(f"Indexed {len(chunks)} chunks into ChromaDB")
 
-# ---------------- Main App ----------------
+# -------------------------------
+# Main App
+# -------------------------------
 
 st.title("🤖 MRPL Sovereign AI Workbench")
 
-# Get all uploaded document names
 all_docs = collection.get()
 
 pdf_files = []
 
 if all_docs["metadatas"]:
-
     pdf_files = sorted(
         list(set([m["source"] for m in all_docs["metadatas"]]))
     )
@@ -100,7 +108,7 @@ if pdf_files:
         pdf_files
     )
 
-    # Delete PDF button
+    # Delete PDF
     if st.button("🗑 Delete Selected PDF"):
 
         data = collection.get()
@@ -111,7 +119,6 @@ if pdf_files:
             data["ids"],
             data["metadatas"]
         ):
-
             if metadata["source"] == selected_pdf:
                 ids_to_delete.append(doc_id)
 
@@ -123,7 +130,18 @@ if pdf_files:
 
             st.rerun()
 
-    question = st.text_input("Ask a question")
+    # -------------------------------
+    # Chat History
+    # -------------------------------
+
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
+
+    for msg in st.session_state.messages:
+        with st.chat_message(msg["role"]):
+            st.write(msg["content"])
+
+    question = st.chat_input("Ask a question")
 
     if question:
 
@@ -169,8 +187,23 @@ Answer:
         if "done thinking." in answer:
             answer = answer.split("done thinking.")[-1].strip()
 
-        st.subheader("Answer")
-        st.write(answer)
+        # Save chat history
+
+        st.session_state.messages.append(
+            {"role": "user", "content": question}
+        )
+
+        st.session_state.messages.append(
+            {"role": "assistant", "content": answer}
+        )
+
+        # Display current conversation
+
+        with st.chat_message("user"):
+            st.write(question)
+
+        with st.chat_message("assistant"):
+            st.write(answer)
 
         st.subheader("Sources")
 
